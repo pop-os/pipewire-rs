@@ -278,6 +278,13 @@ impl<'de, 'a> PodDeserializer<'de> {
         f(self.input).map(|(_input, result)| result)
     }
 
+    /// Returns the amount of padding needed to align a pod with the provided size to 8 bytes.
+    ///
+    /// In other words, this returns the difference between the provided size and the next multiple of 8.
+    fn calc_padding_needed(size: u32) -> u32 {
+        (8 - (size % 8)) % 8
+    }
+
     /// Parse the size from the header and ensure it has the correct type.
     pub(super) fn header<'b>(type_: u32) -> impl FnMut(&'b [u8]) -> IResult<&'b [u8], u32> {
         terminated(u32(Endianness::Native), tag(type_.to_ne_bytes()))
@@ -295,11 +302,7 @@ impl<'de, 'a> PodDeserializer<'de> {
     fn deserialize_fixed_sized_pod<P: FixedSizedPod>(
         mut self,
     ) -> Result<(P, DeserializeSuccess<'de>), DeserializeError<&'de [u8]>> {
-        let padding = if 8 - (P::CanonicalType::SIZE % 8) == 8 {
-            0
-        } else {
-            8 - (P::CanonicalType::SIZE % 8)
-        };
+        let padding = Self::calc_padding_needed(P::CanonicalType::SIZE);
 
         self.parse(delimited(
             Self::header(P::CanonicalType::TYPE),
@@ -393,7 +396,7 @@ impl<'de, 'a> PodDeserializer<'de> {
         V: Visitor<'de>,
     {
         let len = self.parse(Self::header(spa_sys::SPA_TYPE_String))?;
-        let padding = (8 - len) % 8;
+        let padding = Self::calc_padding_needed(len);
         let res = self.parse(terminated(
             map_res(terminated(take(len - 1), tag([b'\0'])), std::str::from_utf8),
             take(padding),
@@ -410,7 +413,7 @@ impl<'de, 'a> PodDeserializer<'de> {
         V: Visitor<'de>,
     {
         let len = self.parse(Self::header(spa_sys::SPA_TYPE_Bytes))?;
-        let padding = (8 - len) % 8;
+        let padding = Self::calc_padding_needed(len);
         let res = self.parse(terminated(take(len), take(padding)))?;
         Ok((visitor.visit_bytes(res)?, DeserializeSuccess(self)))
     }

@@ -352,7 +352,7 @@ fn double() {
 #[test]
 #[cfg_attr(miri, ignore)]
 fn string() {
-    let string = "foo";
+    let string = "123456789";
 
     let vec_rs: Vec<u8> = PodSerializer::serialize(Cursor::new(Vec::new()), string)
         .unwrap()
@@ -363,7 +363,7 @@ fn string() {
             .unwrap()
             .0
             .into_inner();
-    let mut vec_c: Vec<u8> = vec![0; 16];
+    let mut vec_c: Vec<u8> = vec![0; 24];
     let c_string = CString::new(string).unwrap();
     assert_eq!(
         unsafe {
@@ -495,7 +495,7 @@ fn string_empty() {
 #[test]
 #[cfg_attr(miri, ignore)]
 fn bytes() {
-    let bytes = b"foo";
+    let bytes = b"123456789";
 
     let vec_rs: Vec<u8> = PodSerializer::serialize(Cursor::new(Vec::new()), bytes as &[u8])
         .unwrap()
@@ -506,7 +506,7 @@ fn bytes() {
             .unwrap()
             .0
             .into_inner();
-    let mut vec_c: Vec<u8> = vec![0; 16];
+    let mut vec_c: Vec<u8> = vec![0; 24];
     assert_eq!(
         unsafe { c::build_bytes(vec_c.as_mut_ptr(), vec_c.len(), bytes.as_ptr(), bytes.len()) },
         0

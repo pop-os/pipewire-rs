@@ -1,11 +1,13 @@
 // Copyright The pipewire-rs Contributors.
 // SPDX-License-Identifier: MIT
 
+use std::ffi::CString;
 use std::os::raw::c_char;
 use std::{
     ffi::{c_void, CStr},
     mem,
     pin::Pin,
+    ptr,
 };
 
 use crate::{
@@ -44,6 +46,34 @@ impl Metadata {
         MetadataListenerLocalBuilder {
             metadata: self,
             cbs: ListenerLocalCallbacks::default(),
+        }
+    }
+
+    pub fn set_property(&self, subject: u32, key: &str, type_: Option<&str>, value: Option<&str>) {
+        // Keep CStrings allocated here in order for pointers to remain valid.
+        let key = CString::new(key).expect("Invalid byte in metadata key");
+        let type_ = type_.map(|t| CString::new(t).expect("Invalid byte in metadata type"));
+        let value = value.map(|v| CString::new(v).expect("Invalid byte in metadata value"));
+        unsafe {
+            spa::spa_interface_call_method!(
+                self.proxy.as_ptr(),
+                pw_sys::pw_metadata_methods,
+                set_property,
+                subject,
+                key.as_ptr() as *const _,
+                type_.as_deref().map_or_else(ptr::null, CStr::as_ptr) as *const _,
+                value.as_deref().map_or_else(ptr::null, CStr::as_ptr) as *const _
+            );
+        }
+    }
+
+    pub fn clear(&self) {
+        unsafe {
+            spa::spa_interface_call_method!(
+                self.proxy.as_ptr(),
+                pw_sys::pw_metadata_methods,
+                clear,
+            );
         }
     }
 }

@@ -8,6 +8,8 @@
 - [Examples](https://gitlab.freedesktop.org/pipewire/pipewire-rs/-/tree/main/pipewire/examples)
 - [How to contribute](https://gitlab.freedesktop.org/pipewire/pipewire-rs/-/blob/main/CONTRIBUTING.md)
 
+### **These bindings are work-in-progress. Expect frequent breakage, bugs and missing features.**
+
 ## Requirements
 - Rust 1.53 or newer
 - PipeWire 0.3 development files

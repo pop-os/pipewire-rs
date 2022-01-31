@@ -68,7 +68,7 @@ impl<'meta> Drop for MetadataListener {
 #[derive(Default)]
 struct ListenerLocalCallbacks {
     #[allow(clippy::type_complexity)]
-    property: Option<Box<dyn Fn(u32, &str, Option<&str>, &str) -> i32>>,
+    property: Option<Box<dyn Fn(u32, Option<&str>, Option<&str>, Option<&str>) -> i32>>,
 }
 
 #[must_use]
@@ -78,9 +78,15 @@ pub struct MetadataListenerLocalBuilder<'meta> {
 }
 
 impl<'meta> MetadataListenerLocalBuilder<'meta> {
+    /// Add property changed callback.
+    ///
+    /// Callback parameters: subject, key, type, value.
+    ///
+    /// `None` for `value` means removal of property.
+    /// `None` for `key` means removal of all properties.
     pub fn property<F>(mut self, property: F) -> Self
     where
-        F: Fn(u32, &str, Option<&str>, &str) -> i32 + 'static,
+        F: Fn(u32, Option<&str>, Option<&str>, Option<&str>) -> i32 + 'static,
     {
         self.cbs.property = Some(Box::new(property));
         self
@@ -96,14 +102,27 @@ impl<'meta> MetadataListenerLocalBuilder<'meta> {
             value: *const c_char,
         ) -> i32 {
             let callbacks = (data as *mut ListenerLocalCallbacks).as_ref().unwrap();
-            let key = CStr::from_ptr(key).to_string_lossy();
+            let key = if !key.is_null() {
+                Some(CStr::from_ptr(key).to_string_lossy())
+            } else {
+                None
+            };
             let type_ = if !type_.is_null() {
                 Some(CStr::from_ptr(type_).to_string_lossy())
             } else {
                 None
             };
-            let value = CStr::from_ptr(value).to_string_lossy();
-            callbacks.property.as_ref().unwrap()(subject, &key, type_.as_deref(), &value)
+            let value = if !value.is_null() {
+                Some(CStr::from_ptr(value).to_string_lossy())
+            } else {
+                None
+            };
+            callbacks.property.as_ref().unwrap()(
+                subject,
+                key.as_deref(),
+                type_.as_deref(),
+                value.as_deref(),
+            )
         }
 
         let e = unsafe {

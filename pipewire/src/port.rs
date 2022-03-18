@@ -12,6 +12,7 @@ use crate::{
     types::ObjectType,
 };
 use spa::dict::ForeignDict;
+use spa::spa_interface_call_method;
 
 #[derive(Debug)]
 pub struct Port {
@@ -194,13 +195,14 @@ impl<'a> PortListenerLocalBuilder<'a> {
             let data = Box::into_raw(Box::new(self.cbs));
             let mut listener: Pin<Box<spa_sys::spa_hook>> = Box::pin(mem::zeroed());
             let listener_ptr: *mut spa_sys::spa_hook = listener.as_mut().get_unchecked_mut();
-            let funcs: *const pw_sys::pw_port_events = e.as_ref().get_ref();
 
-            pw_sys::pw_proxy_add_object_listener(
-                port.cast(),
+            spa_interface_call_method!(
+                port,
+                pw_sys::pw_port_methods,
+                add_listener,
                 listener_ptr.cast(),
-                funcs.cast(),
-                data as *mut _,
+                e.as_ref().get_ref(),
+                data as *mut _
             );
 
             (listener, Box::from_raw(data))

@@ -1,6 +1,6 @@
 [package]
 name = "pipewire"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Guillaume Desmottes <guillaume.desmottes@collabora.com>"]
 edition = "2018"
 categories = ["api-bindings", "multimedia"]

@@ -12,12 +12,8 @@ use crate::utils::assert_main_thread;
 /// A transparent wrapper around a raw [`pw_loop`](`pw_sys::pw_loop`).
 /// It is usually only seen in a reference (`&LoopRef`).
 ///
-/// This type is similar to rusts [`str`] type,
-/// where [`&str`](`std::str`) is a reference to a slice of characters,
-/// and [`&LoopRef`](`LoopRef`) is a reference to a [`pw_loop`](`pw_sys::pw_loop`).
-///
-/// Like with [`str`] and [`String`], an owned version, [`Loop`], is available,
-/// which can create of [`pw_loop`](`pw_sys::pw_loop`) and lets you own them,
+/// An owned version, [`Loop`], is available,
+/// which lets you create and own a [`pw_loop`](`pw_sys::pw_loop`),
 /// but other objects, such as [`MainLoop`](`crate::MainLoop`), also contain them.
 #[repr(transparent)]
 pub struct LoopRef(pw_sys::pw_loop);
@@ -49,32 +45,34 @@ impl LoopRef {
     /// Start an iteration of the loop. This function should be called
     /// before calling iterate and is typically used to capture the thread
     /// that this loop will run in.
-    pub fn enter(&self) {
-        unsafe {
-            let mut iface = self.as_raw().control.as_ref().unwrap().iface;
+    ///
+    /// # Safety
+    /// Each call of `enter` must be paired with a call of `leave`.
+    pub unsafe fn enter(&self) {
+        let mut iface = self.as_raw().control.as_ref().unwrap().iface;
 
-            spa_interface_call_method!(
-                &mut iface as *mut spa_sys::spa_interface,
-                spa_sys::spa_loop_control_methods,
-                enter,
-            )
-        }
+        spa_interface_call_method!(
+            &mut iface as *mut spa_sys::spa_interface,
+            spa_sys::spa_loop_control_methods,
+            enter,
+        )
     }
 
     /// Leave a loop
     ///
     /// Ends the iteration of a loop. This should be called after calling
     /// iterate.
-    pub fn leave(&self) {
-        unsafe {
-            let mut iface = self.as_raw().control.as_ref().unwrap().iface;
+    ///
+    /// # Safety
+    /// Each call of `leave` must be paired with a call of `enter`.
+    pub unsafe fn leave(&self) {
+        let mut iface = self.as_raw().control.as_ref().unwrap().iface;
 
-            spa_interface_call_method!(
-                &mut iface as *mut spa_sys::spa_interface,
-                spa_sys::spa_loop_control_methods,
-                leave,
-            )
-        }
+        spa_interface_call_method!(
+            &mut iface as *mut spa_sys::spa_interface,
+            spa_sys::spa_loop_control_methods,
+            leave,
+        )
     }
 
     /// Perform one iteration of the loop.
@@ -86,27 +84,39 @@ impl LoopRef {
     /// up to the provided timeout and then dispatch the fds with activity.
     /// The number of dispatched fds is returned.
     ///
-    /// Before calling this, you should call [`Self::enter()`] on the loop, and [`Self::leave()`] afterwards.
+    /// This will automatically call [`Self::enter()`] on the loop before iterating, and [`Self::leave()`] afterwards.
     ///
     /// # Panics
     /// This function will panic if the provided timeout as milliseconds does not fit inside a
     /// `c_int` integer.
     pub fn iterate(&self, timeout: std::time::Duration) -> i32 {
         unsafe {
-            let mut iface = self.as_raw().control.as_ref().unwrap().iface;
+            self.enter();
+            let res = self.iterate_unguarded(timeout);
+            self.leave();
 
-            let timeout: c_int = timeout
-                .as_millis()
-                .try_into()
-                .expect("Provided timeout does not fit in a c_int");
-
-            spa_interface_call_method!(
-                &mut iface as *mut spa_sys::spa_interface,
-                spa_sys::spa_loop_control_methods,
-                iterate,
-                timeout
-            )
+            res
         }
+    }
+
+    /// A variant of [`iterate()`](`Self::iterate()`) that does not call [`Self::enter()`]  and [`Self::leave()`] on the loop.
+    ///
+    /// # Safety
+    /// Before calling this, [`Self::enter()`] must be called, and [`Self::leave()`] must be called afterwards.
+    pub unsafe fn iterate_unguarded(&self, timeout: std::time::Duration) -> i32 {
+        let mut iface = self.as_raw().control.as_ref().unwrap().iface;
+
+        let timeout: c_int = timeout
+            .as_millis()
+            .try_into()
+            .expect("Provided timeout does not fit in a c_int");
+
+        spa_interface_call_method!(
+            &mut iface as *mut spa_sys::spa_interface,
+            spa_sys::spa_loop_control_methods,
+            iterate,
+            timeout
+        )
     }
 
     /// Register some type of IO object with a callback that is called when reading/writing on the IO object

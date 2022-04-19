@@ -13,7 +13,7 @@
 // ignored because https://gitlab.freedesktop.org/pipewire/pipewire-rs/-/issues/19
 //! ```no_run
 //! use std::{time::Duration, sync::mpsc, thread};
-//! use pipewire::{MainLoop, Loop};
+//! use pipewire::{MainLoop, IsLoop};
 //!
 //! // Our message to the pipewire loop, this tells it to terminate.
 //! struct Terminate;
@@ -51,7 +51,7 @@
 //!     });
 //!
 //!     // Every 100ms, send `"Hello"` to the main thread.
-//!     let timer = mainloop.add_timer(move |_| {
+//!     let timer = mainloop.as_loop().add_timer(move |_| {
 //!         main_sender.send(String::from("Hello"));
 //!     });
 //!     timer.update_timer(
@@ -70,7 +70,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{IoSource, Loop};
+use crate::{IoSource, IsLoop};
 use spa::flags::IoFlags;
 
 /// A receiver that has not been attached to a loop.
@@ -85,17 +85,17 @@ impl<T: 'static> Receiver<T> {
     ///
     /// This will make the loop call the callback with any messages that get sent to the receiver.
     #[must_use]
-    pub fn attach<F, L>(self, loop_: &L, callback: F) -> AttachedReceiver<T, L>
+    pub fn attach<F, L>(self, loop_: &L, callback: F) -> AttachedReceiver<T>
     where
         F: Fn(T) + 'static,
-        L: Loop,
+        L: IsLoop,
     {
         let channel = self.channel.clone();
         let eventfd = channel.lock().expect("Channel mutex lock poisoned").eventfd;
 
         // Attach the eventfd as an IO source to the loop.
         // Whenever the eventfd is signaled, call the users callback with each message in the queue.
-        let iosource = loop_.add_io(eventfd, IoFlags::IN, move |_| {
+        let iosource = loop_.as_loop().add_io(eventfd, IoFlags::IN, move |_| {
             let mut channel = channel.lock().expect("Channel mutex lock poisoned");
 
             // Read from the eventfd to make it block until written to again.
@@ -121,19 +121,17 @@ impl<T: 'static> Receiver<T> {
 /// A [`Receiver`] that has been attached to a loop.
 ///
 /// Dropping this will cause it to be deattached from the loop, so no more messages will be received.
-pub struct AttachedReceiver<'l, T, L>
+pub struct AttachedReceiver<'l, T>
 where
     T: 'static,
-    L: Loop,
 {
-    _source: IoSource<'l, RawFd, L>,
+    _source: IoSource<'l, RawFd>,
     receiver: Receiver<T>,
 }
 
-impl<'l, T, L> AttachedReceiver<'l, T, L>
+impl<'l, T> AttachedReceiver<'l, T>
 where
     T: 'static,
-    L: Loop,
 {
     /// Deattach the receiver from the loop.
     ///

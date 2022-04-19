@@ -57,17 +57,21 @@ fn monitor(remote: Option<String>) -> Result<()> {
     let main_loop = pw::MainLoop::new()?;
 
     let main_loop_weak = main_loop.downgrade();
-    let _sig_int = main_loop.add_signal_local(Signal::SIGINT, move || {
-        if let Some(main_loop) = main_loop_weak.upgrade() {
-            main_loop.quit();
-        }
-    });
+    let _sig_int = main_loop
+        .as_loop()
+        .add_signal_local(Signal::SIGINT, move || {
+            if let Some(main_loop) = main_loop_weak.upgrade() {
+                main_loop.quit();
+            }
+        });
     let main_loop_weak = main_loop.downgrade();
-    let _sig_term = main_loop.add_signal_local(Signal::SIGTERM, move || {
-        if let Some(main_loop) = main_loop_weak.upgrade() {
-            main_loop.quit();
-        }
-    });
+    let _sig_term = main_loop
+        .as_loop()
+        .add_signal_local(Signal::SIGTERM, move || {
+            if let Some(main_loop) = main_loop_weak.upgrade() {
+                main_loop.quit();
+            }
+        });
 
     let context = pw::Context::new(&main_loop)?;
     let props = remote.map(|remote| {

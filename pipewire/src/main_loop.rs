@@ -5,7 +5,7 @@ use std::ops::Deref;
 use std::ptr;
 use std::rc::{Rc, Weak};
 
-use crate::loop_::Loop;
+use crate::loop_::{self, IsLoop};
 use crate::{error::Error, Properties};
 use spa::ReadableDict;
 
@@ -45,9 +45,12 @@ impl Deref for MainLoop {
     }
 }
 
-impl Loop for MainLoop {
-    unsafe fn as_ptr(&self) -> *mut pw_sys::pw_loop {
-        pw_sys::pw_main_loop_get_loop(self.inner.as_ptr())
+impl IsLoop for MainLoop {
+    fn as_loop(&self) -> &loop_::LoopRef {
+        unsafe {
+            &*(pw_sys::pw_main_loop_get_loop(self.inner.as_ptr()) as *mut loop_::LoopRef
+                as *const _)
+        }
     }
 }
 

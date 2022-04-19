@@ -4,7 +4,7 @@
 //! Pipewire Stream
 
 use crate::buffer::Buffer;
-use crate::{error::Error, Core, Loop, MainLoop, Properties, PropertiesRef};
+use crate::{error::Error, Core, IsLoop, MainLoop, Properties, PropertiesRef};
 use bitflags::bitflags;
 use spa::result::SpaResult;
 use std::fmt::Debug;
@@ -675,7 +675,7 @@ impl<'a, D> SimpleLocalBuilder<'a, D> {
         let data = Box::into_raw(data);
         let (stream, mut data) = unsafe {
             let stream = pw_sys::pw_stream_new_simple(
-                self.main_loop.as_ptr(),
+                self.main_loop.as_loop().as_ptr(),
                 self.name.as_ptr(),
                 self.properties.into_raw(),
                 events.as_ref().get_ref(),

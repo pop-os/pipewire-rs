@@ -77,14 +77,14 @@
 //! For example, we can call a function on an interval:
 //!
 //! ```no_run
-//! // We also need to include the `Loop` trait for this.
-//! use pipewire::{MainLoop, Loop};
+//! // We also need to include the `IsLoop` trait for this.
+//! use pipewire::{MainLoop, IsLoop};
 //! use std::time::Duration;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mainloop = MainLoop::new()?;
 //!
-//!     let timer = mainloop.add_timer(|_| println!("Hello"));
+//!     let timer = mainloop.as_loop().add_timer(|_| println!("Hello"));
 //!     // Call the first time in half a second, and then in a one second interval.
 //!     timer.update_timer(Some(Duration::from_millis(500)), Some(Duration::from_secs(1))).into_result()?;
 //!
@@ -95,7 +95,7 @@
 //! ```
 //! This program will print out "Hello" every second forever.
 //!
-//! You can also react to IO or Signals using similar methods on the [`Loop`] trait.
+//! Using similar methods, you can also react to IO or Signals, or call a callback whenever the loop is idle.
 //!
 //! ## Multithreading
 //! The pipewire library is not really thread-safe, so pipewire objects do not implement [`Send`](`std::marker::Send`)
@@ -146,7 +146,7 @@ mod utils;
 pub mod prelude {
     pub use spa::prelude::*;
 
-    pub use crate::loop_::Loop;
+    pub use crate::loop_::IsLoop;
     pub use crate::stream::ListenerBuilderT;
 }
 

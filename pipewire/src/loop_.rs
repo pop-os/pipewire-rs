@@ -161,6 +161,49 @@ impl LoopRef {
         }
     }
 
+    /// Register a callback to be called whenever the loop is idle.
+    ///
+    /// This can be enabled and disabled as needed with the `enabled` parameter,
+    /// and also with the `enable` method on the returned source.
+    #[must_use]
+    pub fn add_idle<F>(&self, enabled: bool, callback: F) -> IdleSource
+    where
+        F: Fn() + 'static,
+    {
+        unsafe extern "C" fn call_closure<F>(data: *mut c_void)
+        where
+            F: Fn(),
+        {
+            let callback = (data as *mut F).as_ref().unwrap();
+            callback();
+        }
+
+        let data = Box::into_raw(Box::new(callback));
+
+        let (source, data) = unsafe {
+            let mut iface = self.as_raw().utils.as_ref().unwrap().iface;
+
+            let source = spa_interface_call_method!(
+                &mut iface as *mut spa_sys::spa_interface,
+                spa_sys::spa_loop_utils_methods,
+                add_idle,
+                enabled,
+                Some(call_closure::<F>),
+                data as *mut _
+            );
+
+            (source, Box::from_raw(data))
+        };
+
+        let ptr = ptr::NonNull::new(source).expect("source is NULL");
+
+        IdleSource {
+            ptr,
+            loop_: self,
+            _data: data,
+        }
+    }
+
     /// Register a signal with a callback that is called when the signal is sent.
     ///
     /// For example, this can be used to quit the loop when the process receives the `SIGTERM` signal.
@@ -415,6 +458,9 @@ where
     }
 }
 
+/// A source that can be used to have a callback called when the loop is idle.
+///
+/// This source can be obtained by calling [`add_idle`](`LoopRef::add_idle`) on a loop, registering a callback to it.
 pub struct IdleSource<'l> {
     ptr: ptr::NonNull<spa_sys::spa_source>,
     loop_: &'l LoopRef,
@@ -423,6 +469,7 @@ pub struct IdleSource<'l> {
 }
 
 impl<'l> IdleSource<'l> {
+    /// Set the source as enabled or disabled, allowing or preventing the callback from being called.
     pub fn enable(&self, enable: bool) {
         unsafe {
             let mut iface = self.loop_.as_raw().utils.as_ref().unwrap().iface;

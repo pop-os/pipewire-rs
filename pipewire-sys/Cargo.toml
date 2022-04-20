@@ -17,7 +17,7 @@ keywords = ["ffi", "pipewire", "multimedia", "audio", "video"]
 spa_sys = { package = "libspa-sys", version = "0", path = "../libspa-sys" }
 
 [build-dependencies]
-bindgen = "0.59"
+bindgen = {version = "0.59", default-features = false}
 system-deps = "6"
 
 [package.metadata.system-deps]

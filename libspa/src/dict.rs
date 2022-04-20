@@ -409,8 +409,8 @@ macro_rules! static_dict {
         const ITEMS: &[spa_dict_item] = &[
             $(
                 spa_dict_item {
-                    key: concat!($k, "\0").as_ptr() as *const i8,
-                    value: concat!($v, "\0").as_ptr() as *const i8
+                    key: concat!($k, "\0").as_ptr() as *const std::os::raw::c_char,
+                    value: concat!($v, "\0").as_ptr() as *const std::os::raw::c_char
                 },
             )+
         ];

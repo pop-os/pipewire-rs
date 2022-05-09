@@ -151,7 +151,6 @@ impl LoopRef {
                 spa_sys::spa_loop_utils_methods,
                 add_io,
                 fd,
-                // FIXME: User provided mask instead
                 event_mask.bits(),
                 // Never let the loop close the fd, this should be handled via `Drop` implementations.
                 false,

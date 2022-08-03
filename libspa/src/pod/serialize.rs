@@ -435,32 +435,28 @@ impl<O: Write + Seek> PodSerializer<O> {
         let flags = choice.0;
 
         let (choice_type, values) = match &choice.1 {
-            ChoiceEnum::None(value) => (spa_sys::spa_choice_type_SPA_CHOICE_None, vec![value]),
-            ChoiceEnum::Range { default, min, max } => (
-                spa_sys::spa_choice_type_SPA_CHOICE_Range,
-                vec![default, min, max],
-            ),
+            ChoiceEnum::None(value) => (spa_sys::SPA_CHOICE_None, vec![value]),
+            ChoiceEnum::Range { default, min, max } => {
+                (spa_sys::SPA_CHOICE_Range, vec![default, min, max])
+            }
             ChoiceEnum::Step {
                 default,
                 min,
                 max,
                 step,
-            } => (
-                spa_sys::spa_choice_type_SPA_CHOICE_Step,
-                vec![default, min, max, step],
-            ),
+            } => (spa_sys::SPA_CHOICE_Step, vec![default, min, max, step]),
             ChoiceEnum::Enum {
                 default,
                 alternatives,
             } => {
                 let mut values = vec![default];
                 values.extend(alternatives);
-                (spa_sys::spa_choice_type_SPA_CHOICE_Enum, values)
+                (spa_sys::SPA_CHOICE_Enum, values)
             }
             ChoiceEnum::Flags { default, flags } => {
                 let mut values = vec![default];
                 values.extend(flags);
-                (spa_sys::spa_choice_type_SPA_CHOICE_Flags, values)
+                (spa_sys::SPA_CHOICE_Flags, values)
             }
         };
 

@@ -24,6 +24,7 @@ fn main() {
         .allowlist_type("spa_.*")
         .allowlist_var("spa_.*")
         .allowlist_var("SPA_.*")
+        .prepend_enum_name(false)
         .derive_eq(true);
 
     let builder = libs

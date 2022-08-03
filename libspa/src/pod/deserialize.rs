@@ -643,14 +643,14 @@ impl<'de, 'a> PodDeserializer<'de> {
             let flags = ChoiceFlags::from_bits(flags).expect("invalid choice flags");
 
             match choice_type {
-                spa_sys::spa_choice_type_SPA_CHOICE_None => {
+                spa_sys::SPA_CHOICE_None => {
                     if values.is_empty() {
                         Err(DeserializeError::MissingChoiceValues)
                     } else {
                         Ok(Choice(ChoiceFlags::empty(), ChoiceEnum::None(values[0])))
                     }
                 }
-                spa_sys::spa_choice_type_SPA_CHOICE_Range => {
+                spa_sys::SPA_CHOICE_Range => {
                     if values.len() < 3 {
                         Err(DeserializeError::MissingChoiceValues)
                     } else {
@@ -664,7 +664,7 @@ impl<'de, 'a> PodDeserializer<'de> {
                         ))
                     }
                 }
-                spa_sys::spa_choice_type_SPA_CHOICE_Step => {
+                spa_sys::SPA_CHOICE_Step => {
                     if values.len() < 4 {
                         Err(DeserializeError::MissingChoiceValues)
                     } else {
@@ -679,7 +679,7 @@ impl<'de, 'a> PodDeserializer<'de> {
                         ))
                     }
                 }
-                spa_sys::spa_choice_type_SPA_CHOICE_Enum => {
+                spa_sys::SPA_CHOICE_Enum => {
                     if values.is_empty() {
                         Err(DeserializeError::MissingChoiceValues)
                     } else {
@@ -692,7 +692,7 @@ impl<'de, 'a> PodDeserializer<'de> {
                         ))
                     }
                 }
-                spa_sys::spa_choice_type_SPA_CHOICE_Flags => {
+                spa_sys::SPA_CHOICE_Flags => {
                     if values.is_empty() {
                         Err(DeserializeError::MissingChoiceValues)
                     } else {

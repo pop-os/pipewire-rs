@@ -16,8 +16,8 @@ impl Direction {
     /// The raw representation of the direction
     pub fn as_raw(&self) -> spa_sys::spa_direction {
         match self {
-            Self::Input => spa_sys::spa_direction_SPA_DIRECTION_INPUT,
-            Self::Output => spa_sys::spa_direction_SPA_DIRECTION_OUTPUT,
+            Self::Input => spa_sys::SPA_DIRECTION_INPUT,
+            Self::Output => spa_sys::SPA_DIRECTION_OUTPUT,
         }
     }
 
@@ -27,8 +27,8 @@ impl Direction {
     /// This function will panic if `raw` is an invalid direction.
     pub fn from_raw(raw: spa_sys::spa_direction) -> Self {
         match raw {
-            spa_sys::spa_direction_SPA_DIRECTION_INPUT => Self::Input,
-            spa_sys::spa_direction_SPA_DIRECTION_OUTPUT => Self::Output,
+            spa_sys::SPA_DIRECTION_INPUT => Self::Input,
+            spa_sys::SPA_DIRECTION_OUTPUT => Self::Output,
             _ => panic!("Invalid direction: {}", raw),
         }
     }
@@ -48,25 +48,19 @@ mod tests {
 
     #[test]
     fn as_raw() {
-        assert_eq!(
-            Direction::Input.as_raw(),
-            spa_sys::spa_direction_SPA_DIRECTION_INPUT
-        );
-        assert_eq!(
-            Direction::Output.as_raw(),
-            spa_sys::spa_direction_SPA_DIRECTION_OUTPUT
-        );
+        assert_eq!(Direction::Input.as_raw(), spa_sys::SPA_DIRECTION_INPUT);
+        assert_eq!(Direction::Output.as_raw(), spa_sys::SPA_DIRECTION_OUTPUT);
     }
 
     #[test]
     fn from_raw() {
         assert_eq!(
             Direction::Input,
-            Direction::from_raw(spa_sys::spa_direction_SPA_DIRECTION_INPUT)
+            Direction::from_raw(spa_sys::SPA_DIRECTION_INPUT)
         );
         assert_eq!(
             Direction::Output,
-            Direction::from_raw(spa_sys::spa_direction_SPA_DIRECTION_OUTPUT)
+            Direction::from_raw(spa_sys::SPA_DIRECTION_OUTPUT)
         );
     }
 

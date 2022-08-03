@@ -1371,10 +1371,10 @@ fn object() {
                     object_deserializer: &mut ObjectPodDeserializer<'de>,
                 ) -> Result<Self::Value, DeserializeError<&'de [u8]>> {
                     let (device, _flags) = object_deserializer
-                        .deserialize_property_key::<String>(spa_sys::spa_prop_SPA_PROP_device)?;
+                        .deserialize_property_key::<String>(spa_sys::SPA_PROP_device)?;
 
                     let (frequency, _flags) = object_deserializer
-                        .deserialize_property_key::<f32>(spa_sys::spa_prop_SPA_PROP_frequency)?;
+                        .deserialize_property_key::<f32>(spa_sys::SPA_PROP_frequency)?;
 
                     Ok(MyProps { device, frequency })
                 }
@@ -1401,15 +1401,15 @@ fn object() {
             &[] as &[u8],
             Value::Object(Object {
                 type_: spa_sys::SPA_TYPE_OBJECT_Props,
-                id: spa_sys::spa_param_type_SPA_PARAM_Props,
+                id: spa_sys::SPA_PARAM_Props,
                 properties: vec![
                     Property {
-                        key: spa_sys::spa_prop_SPA_PROP_device,
+                        key: spa_sys::SPA_PROP_device,
                         flags: PropertyFlags::empty(),
                         value: Value::String("hw:0".into()),
                     },
                     Property {
-                        key: spa_sys::spa_prop_SPA_PROP_frequency,
+                        key: spa_sys::SPA_PROP_frequency,
                         flags: PropertyFlags::empty(),
                         value: Value::Float(440.0)
                     }
@@ -1424,18 +1424,16 @@ fn object() {
             &self,
             serializer: PodSerializer<O>,
         ) -> Result<SerializeSuccess<O>, cookie_factory::GenError> {
-            let mut obj_serializer = serializer.serialize_object(
-                spa_sys::SPA_TYPE_OBJECT_Props,
-                spa_sys::spa_param_type_SPA_PARAM_Props,
-            )?;
+            let mut obj_serializer = serializer
+                .serialize_object(spa_sys::SPA_TYPE_OBJECT_Props, spa_sys::SPA_PARAM_Props)?;
 
             obj_serializer.serialize_property(
-                spa_sys::spa_prop_SPA_PROP_device,
+                spa_sys::SPA_PROP_device,
                 "hw:0",
                 PropertyFlags::empty(),
             )?;
             obj_serializer.serialize_property(
-                spa_sys::spa_prop_SPA_PROP_frequency,
+                spa_sys::SPA_PROP_frequency,
                 &440.0_f32,
                 PropertyFlags::empty(),
             )?;
@@ -1482,7 +1480,7 @@ fn choice_range_f32() {
             c::build_choice_f32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Range,
+                spa_sys::SPA_CHOICE_Range,
                 0,
                 3,
                 &[440.0_f32, 110.0, 880.0] as *const f32,
@@ -1534,7 +1532,7 @@ fn choice_range_i32() {
             c::build_choice_i32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Range,
+                spa_sys::SPA_CHOICE_Range,
                 0,
                 3,
                 &[5, 2, 10] as *const i32,
@@ -1579,7 +1577,7 @@ fn choice_none_i32() {
             c::build_choice_i32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_None,
+                spa_sys::SPA_CHOICE_None,
                 0,
                 1,
                 &[5] as *const i32,
@@ -1632,7 +1630,7 @@ fn choice_step_i32() {
             c::build_choice_i32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Step,
+                spa_sys::SPA_CHOICE_Step,
                 0,
                 4,
                 &[5, 2, 10, 1] as *const i32,
@@ -1683,7 +1681,7 @@ fn choice_enum_i32() {
             c::build_choice_i32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Enum,
+                spa_sys::SPA_CHOICE_Enum,
                 0,
                 4,
                 &[5, 2, 10, 1] as *const i32,
@@ -1734,7 +1732,7 @@ fn choice_flags_i32() {
             c::build_choice_i32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Flags,
+                spa_sys::SPA_CHOICE_Flags,
                 0,
                 4,
                 &[5, 2, 10, 1] as *const i32,
@@ -1786,7 +1784,7 @@ fn choice_range_i64() {
             c::build_choice_i64(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Range,
+                spa_sys::SPA_CHOICE_Range,
                 0,
                 3,
                 &[440_i64, 110, 880] as *const i64,
@@ -1838,7 +1836,7 @@ fn choice_range_f64() {
             c::build_choice_f64(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Range,
+                spa_sys::SPA_CHOICE_Range,
                 0,
                 3,
                 &[440.0_f64, 110.0, 880.0] as *const f64,
@@ -1889,7 +1887,7 @@ fn choice_enum_id() {
             c::build_choice_id(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Enum,
+                spa_sys::SPA_CHOICE_Enum,
                 0,
                 4,
                 &[5_u32, 2, 10, 1] as *const u32,
@@ -1952,7 +1950,7 @@ fn choice_enum_rectangle() {
             c::build_choice_rectangle(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Enum,
+                spa_sys::SPA_CHOICE_Enum,
                 0,
                 6,
                 &[800_u32, 600, 1920, 1080, 300, 200] as *const u32,
@@ -2003,7 +2001,7 @@ fn choice_enum_fraction() {
             c::build_choice_fraction(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Enum,
+                spa_sys::SPA_CHOICE_Enum,
                 0,
                 6,
                 &[1_u32, 2, 2, 3, 1, 3] as *const u32,
@@ -2054,7 +2052,7 @@ fn choice_enum_fd() {
             c::build_choice_fd(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_Enum,
+                spa_sys::SPA_CHOICE_Enum,
                 0,
                 4,
                 &[5_i64, 2, 10, 1] as *const i64,
@@ -2088,7 +2086,7 @@ fn choice_extra_values() {
             c::build_choice_i32(
                 vec_c.as_mut_ptr(),
                 vec_c.len(),
-                spa_sys::spa_choice_type_SPA_CHOICE_None,
+                spa_sys::SPA_CHOICE_None,
                 0,
                 1,
                 &[5, 6, 7, 8] as *const i32,

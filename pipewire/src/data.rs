@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, os::unix::io::RawFd};
 
 #[repr(transparent)]
 pub struct Data(spa_sys::spa_data);
@@ -21,6 +21,32 @@ impl Data {
             let chunk: *mut spa_sys::spa_chunk = self.0.chunk;
             &mut *(chunk as *mut Chunk)
         }
+    }
+
+    pub fn type_(&self) -> u32 {
+        self.0.type_
+    }
+
+    pub fn flags(&self) -> u32 {
+        self.0.flags
+    }
+
+    pub fn map_offset(&self) -> u32 {
+        self.0.mapoffset
+    }
+
+    pub fn max_size(&self) -> u32 {
+        self.0.maxsize
+    }
+
+    // TODO: Use `Option<BorrowedFd>`
+    pub fn fd(&self) -> RawFd {
+        self.0.fd as RawFd
+    }
+
+    // TODO: Use `Option<OwnedFd>`
+    pub fn set_fd(&mut self, fd: RawFd) {
+        self.0.fd = fd as _;
     }
 }
 
